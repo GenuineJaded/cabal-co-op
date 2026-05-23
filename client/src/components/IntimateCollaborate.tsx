@@ -211,7 +211,7 @@ export default function IntimateCollaborate({
           style={{
             background: "none",
             border: "none",
-            color: "oklch(0.28 0.06 295)",
+            color: "oklch(0.62 0.16 295)",
             fontSize: "1rem",
             lineHeight: 1,
           }}
