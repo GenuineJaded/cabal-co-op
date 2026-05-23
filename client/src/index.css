@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  /* Coherent Cabal — dark contemplative palette */
+  --primary: oklch(0.45 0.18 295);
+  --primary-foreground: oklch(0.98 0.01 280);
+  --radius: 0.25rem;
+  --background: oklch(0.05 0.01 280);
+  --foreground: oklch(0.88 0.03 295);
+  --card: oklch(0.08 0.01 280);
+  --card-foreground: oklch(0.88 0.03 295);
+  --popover: oklch(0.07 0.01 280);
+  --popover-foreground: oklch(0.88 0.03 295);
+  --secondary: oklch(0.12 0.03 280);
+  --secondary-foreground: oklch(0.75 0.05 295);
+  --muted: oklch(0.12 0.02 280);
+  --muted-foreground: oklch(0.50 0.06 295);
+  --accent: oklch(0.35 0.14 295);
+  --accent-foreground: oklch(0.98 0.01 280);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.18 0.04 295);
+  --input: oklch(0.12 0.02 280);
+  --ring: oklch(0.45 0.18 295);
+
+  /* Purple shade palette for artifact decay */
+  --shade-0: oklch(0.95 0.00 0);
+  --shade-1: oklch(0.80 0.06 295);
+  --shade-2: oklch(0.68 0.10 295);
+  --shade-3: oklch(0.56 0.14 295);
+  --shade-4: oklch(0.45 0.18 295);
+  --shade-5: oklch(0.36 0.20 295);
+  --shade-6: oklch(0.28 0.18 295);
+  --shade-7: oklch(0.20 0.14 295);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href] {
+    @apply cursor-pointer;
+  }
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.25 0.05 295);
+    border-radius: 2px;
+  }
+}
+
+/* ─── Breathing animations ─────────────────────────────────────────────── */
+
+@keyframes breathe-bg {
+  0%, 100% { opacity: 0.04; transform: scaleY(1); }
+  50%       { opacity: 0.09; transform: scaleY(1.018); }
+}
+
+@keyframes breathe-field {
+  0%, 100% { opacity: 0.72; transform: scale(1); }
+  50%       { opacity: 0.96; transform: scale(1.04); }
+}
+
+@keyframes stretch-stripe {
+  0%, 100% {
+    transform: skewX(-19deg) translate3d(0, 0, 0) scaleX(0.94) scaleY(0.98);
+    opacity: 0.2;
+  }
+  35% {
+    transform: skewX(-19deg) translate3d(-0.6%, 0, 0) scaleX(1.02) scaleY(1.03);
+    opacity: 0.34;
+  }
+  65% {
+    transform: skewX(-19deg) translate3d(0.8%, 0, 0) scaleX(1.08) scaleY(1.01);
+    opacity: 0.28;
+  }
+}
+
+@keyframes patha-vibrate {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20%      { transform: translate3d(0.25px, 0, 0); }
+  40%      { transform: translate3d(-0.35px, 0.1px, 0); }
+  60%      { transform: translate3d(0.3px, -0.15px, 0); }
+  80%      { transform: translate3d(-0.2px, 0, 0); }
+}
+
+@keyframes blink-rect {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.62; }
+}
+
+@keyframes pulse-fractal {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.14); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-breathe-bg     { animation: breathe-bg 6s ease-in-out infinite; }
+.animate-breathe-field  { animation: breathe-field 12.5s ease-in-out infinite; }
+.animate-stretch-stripe { animation: stretch-stripe 12s ease-in-out infinite; }
+.animate-blink          { animation: blink-rect 3.3s ease-in-out infinite; }
+.animate-pulse-fractal  { animation: pulse-fractal 4s ease-in-out infinite; }
+.animate-fade-in-up     { animation: fade-in-up 0.7s ease forwards; }
+.animate-patha-vibrate  { animation: patha-vibrate 2.8s linear infinite; }
+
+/* ─── Artifact shade borders ─────────────────────────────────────────── */
+
+.shade-0 { border-color: var(--shade-0); box-shadow: 0 0 8px oklch(0.95 0.00 0 / 0.12); }
+.shade-1 { border-color: var(--shade-1); box-shadow: 0 0 10px oklch(0.80 0.06 295 / 0.18); }
+.shade-2 { border-color: var(--shade-2); box-shadow: 0 0 12px oklch(0.68 0.10 295 / 0.22); }
+.shade-3 { border-color: var(--shade-3); box-shadow: 0 0 14px oklch(0.56 0.14 295 / 0.28); }
+.shade-4 { border-color: var(--shade-4); box-shadow: 0 0 16px oklch(0.45 0.18 295 / 0.32); }
+.shade-5 { border-color: var(--shade-5); box-shadow: 0 0 18px oklch(0.36 0.20 295 / 0.38); }
+.shade-6 { border-color: var(--shade-6); box-shadow: 0 0 20px oklch(0.28 0.18 295 / 0.42); }
+.shade-7 { border-color: var(--shade-7); box-shadow: 0 0 22px oklch(0.20 0.14 295 / 0.48); }
