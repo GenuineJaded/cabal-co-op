@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/:path((?!api/).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/cron/decay", "schedule": "0 * * * *" }
+  ]
+}
