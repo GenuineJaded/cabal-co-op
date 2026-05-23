@@ -15,7 +15,9 @@ export default function IntimateCollaborate({
   const [threadId, setThreadId] = useState<number | null>(null);
   const [disclosed, setDisclosed] = useState(false);
   const [message, setMessage] = useState("");
+  const [threadLabel, setThreadLabel] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const labelWasChanged = threadLabel.trim() !== "";
 
   const initiate = trpc.intimate.initiate.useMutation();
   const sendMessage = trpc.intimate.send.useMutation();
@@ -55,7 +57,7 @@ export default function IntimateCollaborate({
         className="relative w-full max-w-md mx-4 animate-fade-in-up"
         style={{
           background: "oklch(0.07 0.01 280)",
-          border: "1px solid oklch(0.20 0.06 295 / 0.4)",
+          border: "1px solid oklch(0.48 0.14 295 / 0.4)",
           borderRadius: "2px",
           padding: "1.5rem",
           maxHeight: "80vh",
@@ -65,18 +67,36 @@ export default function IntimateCollaborate({
       >
         <div className="mb-4">
           <div
-            className="animate-blink inline-block"
+            className={`${labelWasChanged ? "" : "animate-blink"} inline-block`}
             style={{
-              border: "1px solid oklch(0.35 0.10 295 / 0.6)",
+              border: "1px solid oklch(0.58 0.16 295 / 0.75)",
               borderRadius: "1px",
               padding: "0.2rem 0.6rem",
               fontSize: "0.65rem",
               letterSpacing: "0.2em",
-              color: "oklch(0.45 0.12 295)",
-              userSelect: "none",
             }}
           >
-            Frayed Thread
+            <input
+              value={threadLabel}
+              onChange={(e) => setThreadLabel(e.target.value)}
+              onFocus={(e) => {
+                if (!labelWasChanged) e.target.placeholder = "";
+              }}
+              onBlur={(e) => {
+                if (!labelWasChanged) e.target.placeholder = "Frayed Thread";
+              }}
+              placeholder="Frayed Thread"
+              style={{
+                background: "none",
+                border: "none",
+                outline: "none",
+                color: "oklch(0.80 0.14 295)",
+                fontSize: "0.65rem",
+                letterSpacing: "0.2em",
+                width: `${Math.max(12, (threadLabel || "Frayed Thread").length + 1)}ch`,
+                textAlign: "center",
+              }}
+            />
           </div>
         </div>
 
@@ -174,15 +194,16 @@ export default function IntimateCollaborate({
                   }
                 }}
                 rows={2}
+                placeholder="say something"
                 className="flex-1 resize-none outline-none text-sm"
                 style={{
                   background: "none",
                   border: "none",
-                  borderBottom: "1px solid oklch(0.20 0.05 295 / 0.4)",
-                  color: "oklch(0.75 0.05 295)",
+                  borderBottom: "1px dotted oklch(0.55 0.18 295 / 0.7)",
+                  color: "oklch(0.78 0.06 295)",
                   fontWeight: 300,
-                  caretColor: "oklch(0.55 0.16 295)",
-                  padding: "0.2rem 0",
+                  caretColor: "oklch(0.65 0.18 295)",
+                  padding: "0.35rem 0",
                 }}
               />
               <button
