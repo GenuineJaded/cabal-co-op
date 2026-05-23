@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./_core/trpc.js";
 import {
   addIntimateMessage,
   createArtifact,
@@ -13,8 +13,8 @@ import {
   listQuips,
   recordView,
   runDecay,
-} from "./db";
-import { storageConfigured, storagePut } from "./storage";
+} from "./db.js";
+import { storageConfigured, storagePut } from "./storage.js";
 
 export const appRouter = router({
   system: router({

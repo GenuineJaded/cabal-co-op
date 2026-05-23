@@ -224,14 +224,17 @@ export default function NewArtifactForm({ door, onClose, onCreated }: Props) {
         )}
 
         <div className="flex items-center gap-4 mt-2">
-          <div className="flex-1 flex items-center gap-3">
+          <div
+            className="flex-1 flex items-center gap-3"
+            style={{ marginLeft: "-0.6rem" }}
+          >
             <span
-              className="text-[0.62rem] tracking-[0.25em] lowercase"
+              className="text-[0.7rem] tracking-[0.25em] lowercase"
               style={{
-                color: "oklch(0.48 0.12 295 / 0.8)",
+                color: "oklch(0.56 0.14 295 / 0.9)",
                 whiteSpace: "nowrap",
-                border: "1px solid oklch(0.48 0.12 295 / 0.25)",
-                padding: "0.15rem 0.45rem",
+                border: "1px solid oklch(0.50 0.16 295 / 0.45)",
+                padding: "0.2rem 0.55rem",
                 borderRadius: "1px",
               }}
             >
@@ -245,7 +248,7 @@ export default function NewArtifactForm({ door, onClose, onCreated }: Props) {
               style={{
                 background: "none",
                 border: "none",
-                borderBottom: "1px solid oklch(0.22 0.06 295 / 0.6)",
+                borderBottom: "1px dotted oklch(0.55 0.18 295 / 0.7)",
                 color: "oklch(0.65 0.14 295)",
                 padding: "0.25rem 0",
                 letterSpacing: "0.18em",
@@ -291,7 +294,7 @@ export default function NewArtifactForm({ door, onClose, onCreated }: Props) {
               letterSpacing: "0.18em",
             }}
           >
-            {submitting ? "…" : "place"}
+            {submitting ? "…" : "plant"}
           </button>
         </div>
 

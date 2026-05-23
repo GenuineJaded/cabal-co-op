@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { runDecay } from "../../server/db";
+import { runDecay } from "../../server/db.js";
 
 function getAuthHeader(req: IncomingMessage) {
   const raw = req.headers.authorization;

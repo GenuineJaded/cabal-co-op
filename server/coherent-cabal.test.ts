@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateShade } from "./db";
+import { calculateShade } from "./db.js";
 
 describe("calculateShade", () => {
   const base = {
