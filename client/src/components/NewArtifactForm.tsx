@@ -304,7 +304,7 @@ export default function NewArtifactForm({ door, onClose, onCreated }: Props) {
           style={{
             background: "none",
             border: "none",
-            color: "oklch(0.35 0.08 295)",
+            color: "oklch(0.62 0.16 295)",
             fontSize: "1.1rem",
             lineHeight: 1,
           }}
