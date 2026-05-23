@@ -9,8 +9,8 @@ import {
   intimateMessages,
   intimateThreads,
   quips,
-} from "../drizzle/schema";
-import { storageDelete } from "./storage";
+} from "../drizzle/schema.js";
+import { storageDelete } from "./storage.js";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 

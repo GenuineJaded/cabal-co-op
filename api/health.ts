@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { getDbHealth } from "../server/db";
-import { storageConfigured } from "../server/storage";
+import { getDbHealth } from "../server/db.js";
+import { storageConfigured } from "../server/storage.js";
 
 export default async function healthHandler(
   _req: IncomingMessage,
