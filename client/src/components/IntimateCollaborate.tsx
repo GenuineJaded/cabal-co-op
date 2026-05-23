@@ -76,7 +76,7 @@ export default function IntimateCollaborate({
               userSelect: "none",
             }}
           >
-            Intimate Collaborate
+            Frayed Thread
           </div>
         </div>
 
