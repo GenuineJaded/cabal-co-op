@@ -17,6 +17,7 @@ export default function IntimateCollaborate({
   const [message, setMessage] = useState("");
   const [threadLabel, setThreadLabel] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initiatedRef = useRef(false);
   const labelWasChanged = threadLabel.trim() !== "";
 
   const initiate = trpc.intimate.initiate.useMutation();
@@ -27,17 +28,26 @@ export default function IntimateCollaborate({
     { enabled: !!threadId && disclosed, refetchInterval: 3000 }
   );
 
+  // Create (or join) the thread exactly once, when disclosed. The mutation
+  // object must NOT be a dependency: calling it re-renders, which would
+  // re-fire this effect in a loop and lock up the input.
   useEffect(() => {
-    if (disclosed && !threadId) {
-      initiate.mutateAsync({ artifactId, sessionId }).then((thread) => {
+    if (!disclosed || initiatedRef.current) return;
+    initiatedRef.current = true;
+    initiate
+      .mutateAsync({ artifactId, sessionId })
+      .then((thread) => {
         if (thread) setThreadId(thread.id);
+      })
+      .catch(() => {
+        initiatedRef.current = false;
       });
-    }
-  }, [disclosed, threadId, artifactId, sessionId, initiate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disclosed, artifactId, sessionId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages?.length]);
 
   const handleSend = async () => {
     if (!message.trim() || !threadId) return;
