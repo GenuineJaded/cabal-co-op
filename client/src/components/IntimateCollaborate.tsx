@@ -15,10 +15,8 @@ export default function IntimateCollaborate({
   const [threadId, setThreadId] = useState<number | null>(null);
   const [disclosed, setDisclosed] = useState(false);
   const [message, setMessage] = useState("");
-  const [threadLabel, setThreadLabel] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initiatedRef = useRef(false);
-  const labelWasChanged = threadLabel.trim() !== "";
 
   const initiate = trpc.intimate.initiate.useMutation();
   const sendMessage = trpc.intimate.send.useMutation();
@@ -77,36 +75,18 @@ export default function IntimateCollaborate({
       >
         <div className="mb-4">
           <div
-            className={`${labelWasChanged ? "" : "animate-blink"} inline-block`}
+            className="inline-block"
             style={{
               border: "1px solid oklch(0.58 0.16 295 / 0.75)",
               borderRadius: "1px",
-              padding: "0.2rem 0.6rem",
+              padding: "0.2rem 0.7rem",
               fontSize: "0.65rem",
               letterSpacing: "0.2em",
+              color: "oklch(0.78 0.13 295)",
+              userSelect: "none",
             }}
           >
-            <input
-              value={threadLabel}
-              onChange={(e) => setThreadLabel(e.target.value)}
-              onFocus={(e) => {
-                if (!labelWasChanged) e.target.placeholder = "";
-              }}
-              onBlur={(e) => {
-                if (!labelWasChanged) e.target.placeholder = "Frayed Thread";
-              }}
-              placeholder="Frayed Thread"
-              style={{
-                background: "none",
-                border: "none",
-                outline: "none",
-                color: "oklch(0.80 0.14 295)",
-                fontSize: "0.65rem",
-                letterSpacing: "0.2em",
-                width: `${Math.max(12, (threadLabel || "Frayed Thread").length + 1)}ch`,
-                textAlign: "center",
-              }}
-            />
+            Frayed Thread
           </div>
         </div>
 
