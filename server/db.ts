@@ -22,7 +22,7 @@ import { storageDelete } from "./storage.js";
 //   when the balance hits 0.
 const BASE_LIFE_SECONDS = 604800; // 7 days
 const SHADE_STEP_SECONDS = 86400; // 24 hours
-const MAX_SHADE = 7; // bump to 12 for a 13-shade palette (also extend CSS)
+const MAX_SHADE = 12; // 13 shades total, 0 (white) through 12 (deepest purple)
 
 let _db: ReturnType<typeof drizzle> | null = null;
 

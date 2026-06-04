@@ -36,8 +36,12 @@ describe("calculateShade", () => {
     expect(calculateShade({ ...base, lifeSeconds: BASE + 3 * DAY })).toBe(3);
   });
 
-  it("caps at 7 no matter how much extra was earned", () => {
-    expect(calculateShade({ ...base, lifeSeconds: BASE + 100 * DAY })).toBe(7);
+  it("caps at 12 no matter how much extra was earned", () => {
+    expect(calculateShade({ ...base, lifeSeconds: BASE + 100 * DAY })).toBe(12);
+  });
+
+  it("returns 12 exactly at the cap threshold (12 days of earned extra)", () => {
+    expect(calculateShade({ ...base, lifeSeconds: BASE + 12 * DAY })).toBe(12);
   });
 
   it("clamps to 0 when balance has dropped below the base", () => {
