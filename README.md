@@ -265,6 +265,22 @@ Set CRON_SECRET.
 Deploy the Vercel shape or deliberately keep the Node server shape.
 Confirm /api/health or /health reports database ok: true.
 Confirm the live bundle contains the expected current UI changes.
+Open Tensions
+Known design tensions that have not been addressed yet. Not load-bearing
+until traffic exposes them, but worth naming so the next change doesn't
+quietly entrench them.
+
+- Diminishing returns on life balance.
+  Each view adds 6h and each quip adds 18h to an artifact's lifeSeconds,
+  with no cap. A heavily attended artifact's balance grows without
+  bound, which means at high traffic it effectively cannot dissolve.
+  The intended shape is the opposite: past a certain weight, climbing
+  further should require increasingly more support, so concepts have to
+  keep earning their place near the top instead of coasting on a stored
+  surplus. The likely intervention is a soft cap on lifeSeconds, or a
+  logarithmic extension where each additional interaction adds less
+  the further above base the artifact already is.
+
 Concept Boundary
 This project asks whether an online space changes when memory behaves less like
 storage and more like continued attendance.

@@ -49,15 +49,20 @@
   --input: oklch(0.12 0.02 280);
   --ring: oklch(0.45 0.18 295);
 
-  /* Purple shade palette for artifact decay */
-  --shade-0: oklch(0.95 0.00 0);
-  --shade-1: oklch(0.80 0.06 295);
-  --shade-2: oklch(0.68 0.10 295);
-  --shade-3: oklch(0.56 0.14 295);
-  --shade-4: oklch(0.45 0.18 295);
-  --shade-5: oklch(0.36 0.20 295);
-  --shade-6: oklch(0.28 0.18 295);
-  --shade-7: oklch(0.20 0.14 295);
+  /* Purple shade palette for artifact decay — 13 steps, linear lightness */
+  --shade-0:  oklch(0.95 0.00 0);
+  --shade-1:  oklch(0.89 0.04 295);
+  --shade-2:  oklch(0.83 0.06 295);
+  --shade-3:  oklch(0.76 0.09 295);
+  --shade-4:  oklch(0.70 0.12 295);
+  --shade-5:  oklch(0.64 0.14 295);
+  --shade-6:  oklch(0.58 0.16 295);
+  --shade-7:  oklch(0.51 0.18 295);
+  --shade-8:  oklch(0.45 0.20 295);
+  --shade-9:  oklch(0.39 0.20 295);
+  --shade-10: oklch(0.33 0.19 295);
+  --shade-11: oklch(0.26 0.17 295);
+  --shade-12: oklch(0.20 0.14 295);
 }
 
 @layer base {
@@ -152,11 +157,16 @@
 
 /* ─── Artifact shade borders ─────────────────────────────────────────── */
 
-.shade-0 { border-color: var(--shade-0); box-shadow: 0 0 8px oklch(0.95 0.00 0 / 0.12); }
-.shade-1 { border-color: var(--shade-1); box-shadow: 0 0 10px oklch(0.80 0.06 295 / 0.18); }
-.shade-2 { border-color: var(--shade-2); box-shadow: 0 0 12px oklch(0.68 0.10 295 / 0.22); }
-.shade-3 { border-color: var(--shade-3); box-shadow: 0 0 14px oklch(0.56 0.14 295 / 0.28); }
-.shade-4 { border-color: var(--shade-4); box-shadow: 0 0 16px oklch(0.45 0.18 295 / 0.32); }
-.shade-5 { border-color: var(--shade-5); box-shadow: 0 0 18px oklch(0.36 0.20 295 / 0.38); }
-.shade-6 { border-color: var(--shade-6); box-shadow: 0 0 20px oklch(0.28 0.18 295 / 0.42); }
-.shade-7 { border-color: var(--shade-7); box-shadow: 0 0 22px oklch(0.20 0.14 295 / 0.48); }
+.shade-0  { border-color: var(--shade-0);  box-shadow: 0 0  8px oklch(0.95 0.00 0   / 0.12); }
+.shade-1  { border-color: var(--shade-1);  box-shadow: 0 0  9px oklch(0.89 0.04 295 / 0.15); }
+.shade-2  { border-color: var(--shade-2);  box-shadow: 0 0 10px oklch(0.83 0.06 295 / 0.18); }
+.shade-3  { border-color: var(--shade-3);  box-shadow: 0 0 12px oklch(0.76 0.09 295 / 0.21); }
+.shade-4  { border-color: var(--shade-4);  box-shadow: 0 0 13px oklch(0.70 0.12 295 / 0.24); }
+.shade-5  { border-color: var(--shade-5);  box-shadow: 0 0 14px oklch(0.64 0.14 295 / 0.27); }
+.shade-6  { border-color: var(--shade-6);  box-shadow: 0 0 15px oklch(0.58 0.16 295 / 0.30); }
+.shade-7  { border-color: var(--shade-7);  box-shadow: 0 0 16px oklch(0.51 0.18 295 / 0.33); }
+.shade-8  { border-color: var(--shade-8);  box-shadow: 0 0 17px oklch(0.45 0.20 295 / 0.36); }
+.shade-9  { border-color: var(--shade-9);  box-shadow: 0 0 19px oklch(0.39 0.20 295 / 0.39); }
+.shade-10 { border-color: var(--shade-10); box-shadow: 0 0 20px oklch(0.33 0.19 295 / 0.42); }
+.shade-11 { border-color: var(--shade-11); box-shadow: 0 0 21px oklch(0.26 0.17 295 / 0.45); }
+.shade-12 { border-color: var(--shade-12); box-shadow: 0 0 22px oklch(0.20 0.14 295 / 0.48); }
