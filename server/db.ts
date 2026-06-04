@@ -12,6 +12,18 @@ import {
 } from "../drizzle/schema.js";
 import { storageDelete } from "./storage.js";
 
+// Shade model:
+// - lifeSeconds is the artifact's remaining life *balance*, not its total lifespan.
+// - A fresh artifact starts at BASE_LIFE_SECONDS (7 days) → shade 0 (white).
+// - A click adds 6h, a quip adds 18h. Every SHADE_STEP_SECONDS (24h) of balance
+//   beyond the base = one shade deeper into purple, capped at MAX_SHADE.
+// - The daily decay cron subtracts SHADE_STEP_SECONDS from every artifact's
+//   balance. Untouched artifacts therefore drift back toward white and dissolve
+//   when the balance hits 0.
+const BASE_LIFE_SECONDS = 604800; // 7 days
+const SHADE_STEP_SECONDS = 86400; // 24 hours
+const MAX_SHADE = 7; // bump to 12 for a 13-shade palette (also extend CSS)
+
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export function getDb() {
@@ -54,7 +66,7 @@ export async function createArtifact(data: InsertArtifact) {
     .insert(artifacts)
     .values({
       ...data,
-      lifeSeconds: 604800,
+      lifeSeconds: BASE_LIFE_SECONDS,
       purpleShade: 0,
       isExpired: false,
       lastInteractedAt: new Date(),
@@ -66,13 +78,17 @@ export async function createArtifact(data: InsertArtifact) {
 export async function listArtifacts(type?: "writing" | "music" | "art") {
   const db = getDb();
   if (!db) return [];
-  const conditions = [eq(artifacts.isExpired, false)];
+  const conditions = [
+    eq(artifacts.isExpired, false),
+    sql`${artifacts.lifeSeconds} > 0`,
+  ];
   if (type) conditions.push(eq(artifacts.type, type));
+  // Sort by life balance: weightier (more interaction) artifacts surface first.
   return db
     .select()
     .from(artifacts)
     .where(and(...conditions))
-    .orderBy(sql`${artifacts.purpleShade} DESC, ${artifacts.createdAt} DESC`);
+    .orderBy(sql`${artifacts.lifeSeconds} DESC, ${artifacts.createdAt} DESC`);
 }
 
 export async function getArtifactById(id: number) {
@@ -86,7 +102,7 @@ export async function getArtifactById(id: number) {
   return result[0];
 }
 
-// Record a view: extend life by 6 hours.
+// Record a view: extend life balance by 6 hours, refresh shade.
 export async function recordView(artifactId: number) {
   const db = getDb();
   if (!db) return;
@@ -98,9 +114,10 @@ export async function recordView(artifactId: number) {
       lastInteractedAt: new Date(),
     })
     .where(and(eq(artifacts.id, artifactId), eq(artifacts.isExpired, false)));
+  await refreshShade(artifactId);
 }
 
-// Record a quip: extend life by 18 hours.
+// Record a quip: extend life balance by 18 hours, refresh shade.
 export async function recordQuipInteraction(artifactId: number) {
   const db = getDb();
   if (!db) return;
@@ -112,31 +129,57 @@ export async function recordQuipInteraction(artifactId: number) {
       lastInteractedAt: new Date(),
     })
     .where(and(eq(artifacts.id, artifactId), eq(artifacts.isExpired, false)));
+  await refreshShade(artifactId);
+}
+
+// Recompute and persist purpleShade for a single artifact so interaction
+// reflects in color immediately, not only after the next daily decay run.
+async function refreshShade(artifactId: number) {
+  const db = getDb();
+  if (!db) return;
+  const [row] = await db
+    .select()
+    .from(artifacts)
+    .where(eq(artifacts.id, artifactId))
+    .limit(1);
+  if (!row) return;
+  const shade = calculateShade(row);
+  if (shade !== row.purpleShade) {
+    await db
+      .update(artifacts)
+      .set({ purpleShade: shade })
+      .where(eq(artifacts.id, artifactId));
+  }
 }
 
 // ─── Decay ───────────────────────────────────────────────────────────────────
 
-// Each shade = 18 hours (64800s) of inactivity. Capped at 7.
+// Shade derives from how much life has been *earned* beyond the base 7 days.
+// 0 = white (fresh or unsupported); each 24h of extra balance = one shade deeper.
 export function calculateShade(artifact: Artifact): number {
-  const now = Date.now();
-  const lastInteraction = artifact.lastInteractedAt.getTime();
-  const inactiveSeconds = (now - lastInteraction) / 1000;
-  return Math.min(7, Math.floor(inactiveSeconds / 64800));
+  const earnedExtra = artifact.lifeSeconds - BASE_LIFE_SECONDS;
+  const shade = Math.floor(earnedExtra / SHADE_STEP_SECONDS);
+  return Math.max(0, Math.min(MAX_SHADE, shade));
 }
 
 export async function runDecay() {
   const db = getDb();
   if (!db) return { expired: 0, updated: 0 };
 
-  // Find artifacts past their lifespan.
+  // Daily fade: pull every artifact's life balance down by one shade-step.
+  // Heavy interaction has to outpace this to climb in purple; quiet artifacts
+  // drift back toward white and eventually cross zero.
+  await db
+    .update(artifacts)
+    .set({ lifeSeconds: sql`${artifacts.lifeSeconds} - ${SHADE_STEP_SECONDS}` })
+    .where(eq(artifacts.isExpired, false));
+
+  // Dissolve anything whose balance ran out.
   const expired = await db
     .select({ id: artifacts.id, fileKey: artifacts.fileKey })
     .from(artifacts)
     .where(
-      and(
-        eq(artifacts.isExpired, false),
-        sql`${artifacts.createdAt} + (${artifacts.lifeSeconds} * interval '1 second') < NOW()`
-      )
+      and(eq(artifacts.isExpired, false), sql`${artifacts.lifeSeconds} <= 0`)
     );
 
   let expiredCount = 0;
@@ -170,7 +213,7 @@ export async function runDecay() {
   // Quietly clean files. If storage isn't configured, this is a no-op.
   await storageDelete(filesToDelete);
 
-  // Update purple shades for surviving artifacts.
+  // Refresh purple shades for surviving artifacts.
   const active = await db
     .select()
     .from(artifacts)
