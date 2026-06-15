@@ -24,11 +24,12 @@ export const artifacts = pgTable(
     fileUrl: text("fileUrl"),
     fileKey: varchar("fileKey", { length: 256 }),
     type: typeEnum("type").notNull().default("writing"),
-    // Life *balance* in seconds. Starts at 604800 (7 days). Each view adds 6h,
-    // each quip 18h. The daily decay cron subtracts 24h. Dissolves at <= 0.
+    // Life *balance* in seconds. Starts at 604800 (7 days). A view adds a
+    // nominal 6h and a quip a nominal 18h, both with diminishing returns toward
+    // a soft ceiling. The daily decay cron subtracts 24h. Dissolves at <= 0.
     lifeSeconds: bigint("lifeSeconds", { mode: "number" }).notNull().default(604800),
     // 0 = white (fresh or unsupported); each 24h of extra balance above the
-    // base deepens by one shade, capped at 7.
+    // base deepens by one shade, capped at 12.
     purpleShade: integer("purpleShade").notNull().default(0),
     isExpired: boolean("isExpired").notNull().default(false),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
