@@ -27,7 +27,10 @@ Before claiming completion, verify against the matter directly: inspect the touc
 - API: tRPC running on Vercel functions under `api/`.
 - Database: Supabase Postgres (`DATABASE_URL`).
 - File storage: Supabase Storage bucket `cabal-storage`.
-- Cron: Vercel cron hits `/api/cron/decay` hourly.
+- Cron: `/api/cron/decay` runs daily, triggered by both a Vercel cron
+  (`vercel.json`) and a GitHub Actions schedule (`.github/workflows/decay.yml`).
+  The runner is time-based and idempotent, so the two triggers are safe to
+  overlap.
 
 ## Required env vars
 

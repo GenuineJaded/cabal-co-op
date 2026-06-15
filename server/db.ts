@@ -12,14 +12,21 @@ import {
 } from "../drizzle/schema.js";
 import { storageDelete } from "./storage.js";
 
-// Shade model:
-// - lifeSeconds is the artifact's remaining life *balance*, not its total lifespan.
-// - A fresh artifact starts at BASE_LIFE_SECONDS (7 days) → shade 0 (white).
-// - A click adds 6h, a quip adds 18h. Every SHADE_STEP_SECONDS (24h) of balance
-//   beyond the base = one shade deeper into purple, capped at MAX_SHADE.
-// - The daily decay cron subtracts SHADE_STEP_SECONDS from every artifact's
-//   balance. Untouched artifacts therefore drift back toward white and dissolve
-//   when the balance hits 0.
+// Shade + decay model (time-based, self-healing):
+// - lifeSeconds is the artifact's *total granted lifespan*, measured from
+//   createdAt. A fresh artifact starts at BASE_LIFE_SECONDS (7 days).
+// - A view adds 6h, a quip adds 18h — they push the deadline
+//   (createdAt + lifeSeconds) further out.
+// - The artifact dissolves once that deadline passes. Decay is the passage of
+//   wall-clock time, not a stored countdown the cron decrements. That makes the
+//   cron idempotent: running it twice in a day, or once after a week of missed
+//   runs, both leave the field in exactly the right state. A missed cron can no
+//   longer leave a post immortal — it just dissolves on the next run after its
+//   deadline.
+// - Shade reflects life remaining *beyond* the base 7 days: each
+//   SHADE_STEP_SECONDS (24h) of extra remaining life = one shade deeper into
+//   purple (capped at MAX_SHADE). Interaction deepens the shade; the passage of
+//   time fades it back toward white.
 const BASE_LIFE_SECONDS = 604800; // 7 days
 const SHADE_STEP_SECONDS = 86400; // 24 hours
 const MAX_SHADE = 12; // 13 shades total, 0 (white) through 12 (deepest purple)
@@ -80,15 +87,19 @@ export async function listArtifacts(type?: "writing" | "music" | "art") {
   if (!db) return [];
   const conditions = [
     eq(artifacts.isExpired, false),
-    sql`${artifacts.lifeSeconds} > 0`,
+    // Alive while the deadline (createdAt + lifeSeconds) is still in the future.
+    sql`${artifacts.createdAt} + (${artifacts.lifeSeconds} * interval '1 second') > now()`,
   ];
   if (type) conditions.push(eq(artifacts.type, type));
-  // Sort by life balance: weightier (more interaction) artifacts surface first.
+  // Sort by deadline: weightier (more interaction) artifacts last longer and so
+  // surface first.
   return db
     .select()
     .from(artifacts)
     .where(and(...conditions))
-    .orderBy(sql`${artifacts.lifeSeconds} DESC, ${artifacts.createdAt} DESC`);
+    .orderBy(
+      sql`(${artifacts.createdAt} + (${artifacts.lifeSeconds} * interval '1 second')) DESC`
+    );
 }
 
 export async function getArtifactById(id: number) {
@@ -154,10 +165,19 @@ async function refreshShade(artifactId: number) {
 
 // ─── Decay ───────────────────────────────────────────────────────────────────
 
-// Shade derives from how much life has been *earned* beyond the base 7 days.
-// 0 = white (fresh or unsupported); each 24h of extra balance = one shade deeper.
-export function calculateShade(artifact: Artifact): number {
-  const earnedExtra = artifact.lifeSeconds - BASE_LIFE_SECONDS;
+// Shade derives from how much life remains *beyond* the base 7 days. Remaining
+// life is the deadline (createdAt + lifeSeconds) minus now: interaction pushes
+// the deadline out and deepens the shade, while the passage of time pulls it
+// back toward white. 0 = white (fresh, unsupported, or fading); each 24h of
+// extra remaining life = one shade deeper, capped at MAX_SHADE.
+export function calculateShade(
+  artifact: Artifact,
+  now: Date = new Date()
+): number {
+  const deadlineSeconds =
+    artifact.createdAt.getTime() / 1000 + artifact.lifeSeconds;
+  const remaining = deadlineSeconds - now.getTime() / 1000;
+  const earnedExtra = remaining - BASE_LIFE_SECONDS;
   const shade = Math.floor(earnedExtra / SHADE_STEP_SECONDS);
   return Math.max(0, Math.min(MAX_SHADE, shade));
 }
@@ -166,20 +186,18 @@ export async function runDecay() {
   const db = getDb();
   if (!db) return { expired: 0, updated: 0 };
 
-  // Daily fade: pull every artifact's life balance down by one shade-step.
-  // Heavy interaction has to outpace this to climb in purple; quiet artifacts
-  // drift back toward white and eventually cross zero.
-  await db
-    .update(artifacts)
-    .set({ lifeSeconds: sql`${artifacts.lifeSeconds} - ${SHADE_STEP_SECONDS}` })
-    .where(eq(artifacts.isExpired, false));
-
-  // Dissolve anything whose balance ran out.
+  // Dissolve anything whose deadline (createdAt + lifeSeconds) has passed.
+  // This is time-based, so it is correct no matter how often the cron fires:
+  // a missed run just means a post dissolves on the next run after its deadline,
+  // never that it lives forever.
   const expired = await db
     .select({ id: artifacts.id, fileKey: artifacts.fileKey })
     .from(artifacts)
     .where(
-      and(eq(artifacts.isExpired, false), sql`${artifacts.lifeSeconds} <= 0`)
+      and(
+        eq(artifacts.isExpired, false),
+        sql`${artifacts.createdAt} + (${artifacts.lifeSeconds} * interval '1 second') <= now()`
+      )
     );
 
   let expiredCount = 0;
@@ -213,7 +231,8 @@ export async function runDecay() {
   // Quietly clean files. If storage isn't configured, this is a no-op.
   await storageDelete(filesToDelete);
 
-  // Refresh purple shades for surviving artifacts.
+  // Refresh purple shades for surviving artifacts against the current moment.
+  const now = new Date();
   const active = await db
     .select()
     .from(artifacts)
@@ -221,7 +240,7 @@ export async function runDecay() {
 
   let updated = 0;
   for (const artifact of active) {
-    const shade = calculateShade(artifact);
+    const shade = calculateShade(artifact, now);
     if (shade !== artifact.purpleShade) {
       await db
         .update(artifacts)

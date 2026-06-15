@@ -136,13 +136,19 @@ Purpose: make attention and absence visible.
 Files:
 
 server/db.ts
-server/routers/scheduled.ts
 api/cron/decay.ts
 vercel.json
+.github/workflows/decay.yml
 Rules:
 
-shade changes every 18 hours of inactivity
-artifact expires when createdAt + lifeSeconds is older than now
+decay is time-based: an artifact expires when createdAt + lifeSeconds is older
+than now
+shade fades continuously toward white as that deadline approaches; interaction
+pushes the deadline out and deepens the shade
+the decay runner is idempotent — running it more or less often only changes how
+promptly an expired artifact disappears, never whether it does
+two independent triggers run the runner: a Vercel cron (vercel.json) and a
+GitHub Actions schedule (.github/workflows/decay.yml), both daily
 expiration deletes:
 artifact
 quips
