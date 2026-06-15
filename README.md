@@ -87,8 +87,10 @@ last interaction timestamp
 Rules:
 
 a new artifact starts alive
-views extend life by 6 hours
-quips extend life by 18 hours
+views extend life by a nominal 6 hours
+quips extend life by a nominal 18 hours
+extension has diminishing returns: the higher the balance already sits above
+base, the less of that nominal gain lands, reaching zero at a soft ceiling
 inactivity darkens the artifact
 expiration deletes the artifact and related records
 Quip
@@ -270,16 +272,16 @@ Known design tensions that have not been addressed yet. Not load-bearing
 until traffic exposes them, but worth naming so the next change doesn't
 quietly entrench them.
 
-- Diminishing returns on life balance.
-  Each view adds 6h and each quip adds 18h to an artifact's lifeSeconds,
-  with no cap. A heavily attended artifact's balance grows without
-  bound, which means at high traffic it effectively cannot dissolve.
-  The intended shape is the opposite: past a certain weight, climbing
-  further should require increasingly more support, so concepts have to
-  keep earning their place near the top instead of coasting on a stored
-  surplus. The likely intervention is a soft cap on lifeSeconds, or a
-  logarithmic extension where each additional interaction adds less
-  the further above base the artifact already is.
+- Diminishing returns on life balance. (Addressed.)
+  Previously each view added a flat 6h and each quip a flat 18h to
+  lifeSeconds with no cap, so a heavily attended artifact's balance grew
+  without bound and at high traffic it effectively could not dissolve.
+  Extension now diminishes (see extendLife in server/db.ts): the full
+  nominal gain lands only at or below the base, shrinking to zero at a
+  soft ceiling one shade-range above base (19 days). Paired with the flat
+  daily decay, the sustainable height of an artifact is set by how
+  *continuously* it draws support, not by a banked surplus — a concept has
+  to keep earning its place near the top instead of coasting.
 
 Concept Boundary
 This project asks whether an online space changes when memory behaves less like

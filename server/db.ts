@@ -15,14 +15,28 @@ import { storageDelete } from "./storage.js";
 // Shade model:
 // - lifeSeconds is the artifact's remaining life *balance*, not its total lifespan.
 // - A fresh artifact starts at BASE_LIFE_SECONDS (7 days) → shade 0 (white).
-// - A click adds 6h, a quip adds 18h. Every SHADE_STEP_SECONDS (24h) of balance
-//   beyond the base = one shade deeper into purple, capped at MAX_SHADE.
+// - A view nominally adds 6h, a quip nominally adds 18h — but extension has
+//   diminishing returns (see extendLife): the higher the balance already sits
+//   above the base, the less of that nominal gain lands. Every SHADE_STEP_SECONDS
+//   (24h) of balance beyond the base = one shade deeper into purple, capped at
+//   MAX_SHADE.
 // - The daily decay cron subtracts SHADE_STEP_SECONDS from every artifact's
 //   balance. Untouched artifacts therefore drift back toward white and dissolve
 //   when the balance hits 0.
 const BASE_LIFE_SECONDS = 604800; // 7 days
 const SHADE_STEP_SECONDS = 86400; // 24 hours
 const MAX_SHADE = 12; // 13 shades total, 0 (white) through 12 (deepest purple)
+
+// Nominal life gains, before diminishing returns are applied.
+const VIEW_GAIN_SECONDS = 21600; // 6 hours
+const QUIP_GAIN_SECONDS = 64800; // 18 hours
+
+// The soft ceiling sits exactly at the deepest shade: 7-day base + 12 shade
+// steps. Past it there is no further reward to bank — the colour can't deepen
+// and the balance can't climb — so a concept has to keep earning support to
+// hold the top instead of coasting on a stored surplus.
+const SOFT_CEILING_SECONDS = BASE_LIFE_SECONDS + MAX_SHADE * SHADE_STEP_SECONDS; // 19 days
+const EXTENSION_SPAN_SECONDS = SOFT_CEILING_SECONDS - BASE_LIFE_SECONDS; // 12 days
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -102,54 +116,40 @@ export async function getArtifactById(id: number) {
   return result[0];
 }
 
-// Record a view: extend life balance by 6 hours, refresh shade.
+// Record a view: extend life balance by a nominal 6 hours (diminished).
 export async function recordView(artifactId: number) {
   const db = getDb();
   if (!db) return;
   await db.insert(interactions).values({ artifactId, type: "view" });
-  await db
-    .update(artifacts)
-    .set({
-      lifeSeconds: sql`${artifacts.lifeSeconds} + 21600`,
-      lastInteractedAt: new Date(),
-    })
-    .where(and(eq(artifacts.id, artifactId), eq(artifacts.isExpired, false)));
-  await refreshShade(artifactId);
+  await applyExtension(artifactId, VIEW_GAIN_SECONDS);
 }
 
-// Record a quip: extend life balance by 18 hours, refresh shade.
+// Record a quip: extend life balance by a nominal 18 hours (diminished).
 export async function recordQuipInteraction(artifactId: number) {
   const db = getDb();
   if (!db) return;
   await db.insert(interactions).values({ artifactId, type: "quip" });
-  await db
-    .update(artifacts)
-    .set({
-      lifeSeconds: sql`${artifacts.lifeSeconds} + 64800`,
-      lastInteractedAt: new Date(),
-    })
-    .where(and(eq(artifacts.id, artifactId), eq(artifacts.isExpired, false)));
-  await refreshShade(artifactId);
+  await applyExtension(artifactId, QUIP_GAIN_SECONDS);
 }
 
-// Recompute and persist purpleShade for a single artifact so interaction
-// reflects in color immediately, not only after the next daily decay run.
-async function refreshShade(artifactId: number) {
+// Apply a life extension with diminishing returns and persist the resulting
+// balance and shade in a single write, so interaction reflects in color
+// immediately rather than only after the next daily decay run.
+async function applyExtension(artifactId: number, nominalGain: number) {
   const db = getDb();
   if (!db) return;
   const [row] = await db
     .select()
     .from(artifacts)
-    .where(eq(artifacts.id, artifactId))
+    .where(and(eq(artifacts.id, artifactId), eq(artifacts.isExpired, false)))
     .limit(1);
   if (!row) return;
-  const shade = calculateShade(row);
-  if (shade !== row.purpleShade) {
-    await db
-      .update(artifacts)
-      .set({ purpleShade: shade })
-      .where(eq(artifacts.id, artifactId));
-  }
+  const lifeSeconds = extendLife(row.lifeSeconds, nominalGain);
+  const purpleShade = calculateShade({ ...row, lifeSeconds });
+  await db
+    .update(artifacts)
+    .set({ lifeSeconds, purpleShade, lastInteractedAt: new Date() })
+    .where(eq(artifacts.id, artifactId));
 }
 
 // ─── Decay ───────────────────────────────────────────────────────────────────
@@ -160,6 +160,18 @@ export function calculateShade(artifact: Artifact): number {
   const earnedExtra = artifact.lifeSeconds - BASE_LIFE_SECONDS;
   const shade = Math.floor(earnedExtra / SHADE_STEP_SECONDS);
   return Math.max(0, Math.min(MAX_SHADE, shade));
+}
+
+// Extend a life balance with diminishing returns. At or below the base, the
+// full nominal gain lands; the further the balance already sits above the base,
+// the smaller the fraction that lands, reaching zero at the soft ceiling. Paired
+// with the flat daily decay, this means a concept can only hold a high position
+// by *continuing* to draw support — it can't bank a surplus and coast.
+export function extendLife(current: number, nominalGain: number): number {
+  const surplus = Math.max(0, current - BASE_LIFE_SECONDS);
+  const factor = Math.max(0, 1 - surplus / EXTENSION_SPAN_SECONDS);
+  const applied = Math.floor(nominalGain * factor);
+  return Math.min(SOFT_CEILING_SECONDS, current + applied);
 }
 
 export async function runDecay() {
