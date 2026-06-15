@@ -1,0 +1,45 @@
+# Decay trigger — serves the "decay" structure (see README).
+#
+# The field's decay logic lives at /api/cron/decay and is time-based and
+# idempotent: it dissolves any artifact whose deadline (createdAt + lifeSeconds)
+# has passed. Hitting it more or less often does not change the outcome, it only
+# changes how promptly an over-its-deadline artifact disappears.
+#
+# This workflow is the dependable daily trigger. The Vercel cron in vercel.json
+# stays as a second, independent trigger; because the endpoint is idempotent,
+# both firing is harmless.
+#
+# Setup (one time): add a repository Actions secret named CRON_SECRET matching
+# the CRON_SECRET set on the deployment. If the deployment has no CRON_SECRET,
+# the endpoint is open and this still works. Override the target with a
+# repository variable named DECAY_URL if the production URL ever changes.
+#
+# Note: GitHub disables scheduled workflows after 60 days with no repo activity.
+# If the field goes quiet for that long, re-enable this workflow (or rely on the
+# Vercel cron) — or trigger it manually from the Actions tab.
+name: decay
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # daily at 04:00 UTC — matches the field's cadence
+  workflow_dispatch: {} # manual run from the Actions tab
+
+jobs:
+  decay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger decay
+        env:
+          DECAY_URL: ${{ vars.DECAY_URL || 'https://cabal-co-op.vercel.app/api/cron/decay' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Triggering decay at $DECAY_URL"
+          code=$(curl -sS -o /tmp/decay.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "$DECAY_URL")
+          echo "HTTP $code"
+          cat /tmp/decay.json || true
+          echo
+          # Fail loudly so a stalled decay shows up as a red run instead of
+          # quietly leaving the field un-decayed.
+          test "$code" = "200"

@@ -24,11 +24,14 @@ export const artifacts = pgTable(
     fileUrl: text("fileUrl"),
     fileKey: varchar("fileKey", { length: 256 }),
     type: typeEnum("type").notNull().default("writing"),
-    // Life *balance* in seconds. Starts at 604800 (7 days). Each view adds 6h,
-    // each quip 18h. The daily decay cron subtracts 24h. Dissolves at <= 0.
+    // Total granted lifespan in seconds, measured from createdAt. Starts at
+    // 604800 (7 days). Each view adds 6h, each quip 18h, pushing the deadline
+    // (createdAt + lifeSeconds) further out. The artifact dissolves once that
+    // deadline passes — decay is the passage of time, not a stored countdown.
     lifeSeconds: bigint("lifeSeconds", { mode: "number" }).notNull().default(604800),
-    // 0 = white (fresh or unsupported); each 24h of extra balance above the
-    // base deepens by one shade, capped at 7.
+    // 0 = white (fresh, unsupported, or fading); each 24h of remaining life
+    // beyond the base 7 days deepens by one shade, capped at 12. Fades back
+    // toward white as the deadline approaches.
     purpleShade: integer("purpleShade").notNull().default(0),
     isExpired: boolean("isExpired").notNull().default(false),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
