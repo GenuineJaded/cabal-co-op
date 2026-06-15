@@ -1,0 +1,316 @@
+# Instincts generated from https://github.com/GenuineJaded/cabal-co-op
+# Generated: 2026-06-15T04:42:46.308Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: cabal-co-op-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Commit Length
+
+## Action
+
+Write moderate-length commit messages (~54 characters)
+
+## Evidence
+
+- Average commit message length: 54 chars
+- Based on 1 commits
+
+---
+id: cabal-co-op-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: cabal-co-op-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: cabal-co-op-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct File Naming
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: cabal-co-op-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: cabal-co-op-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: cabal-co-op-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: cabal-co-op-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Import Style
+
+## Action
+
+Use mixed import styles as appropriate
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: cabal-co-op-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: cabal-co-op-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Commit Format
+
+## Action
+
+Write a freeform message without a prefix, averaging around 54 characters
+
+## Evidence
+
+- Pattern in commits.type
+- Pattern in commits.averageLength
+- Example: 'Make decay time-based and add a reliable daily trigger'
+
+---
+id: cabal-co-op-instinct-error-handling
+trigger: "When handling errors in TypeScript code"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Error Handling
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style
+
+---
+id: cabal-co-op-instinct-no-custom-error-classes
+trigger: "When defining error handling logic"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct No Custom Error Classes
+
+## Action
+
+Do not create custom error classes
+
+## Evidence
+
+- Pattern in errorHandling.customErrorClasses
+
+---
+id: cabal-co-op-instinct-no-global-error-handler
+trigger: "When considering global error handling"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct No Global Error Handler
+
+## Action
+
+Do not implement a global error handler
+
+## Evidence
+
+- Pattern in errorHandling.globalHandler
+
+---
+id: cabal-co-op-instinct-test-location-mixed
+trigger: "When adding new tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Test Location Mixed
+
+## Action
+
+Place test files in mixed locations (not strictly separated from source)
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+
+---
+id: cabal-co-op-instinct-typescript-tests
+trigger: "When writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct Typescript Tests
+
+## Action
+
+Write tests in TypeScript
+
+## Evidence
+
+- Pattern in codeStyle.language
+
+---
+id: cabal-co-op-instinct-no-workflows
+trigger: "When considering CI/CD or automation workflows"
+confidence: 0.8
+domain: workflow
+source: repo-analysis
+source_repo: GenuineJaded/cabal-co-op
+---
+
+# Cabal Co Op Instinct No Workflows
+
+## Action
+
+Do not assume any standard workflows are present; check for custom YAML files
+
+## Evidence
+
+- No workflows detected
+- Presence of .github/workflows/decay.yml
+
